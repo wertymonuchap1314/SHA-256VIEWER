@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Password to SHA-256 Hash</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      max-width: 600px;
+    }
+    input[type="password"] {
+      padding: 8px;
+      font-size: 1em;
+      width: 300px;
+    }
+    button {
+      padding: 8px 15px;
+      font-size: 1em;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    p.note {
+      margin-top: 20px;
+      font-style: italic;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <h1>Password to SHA-256 Hash</h1>
+  <input type="password" id="passwordInput" placeholder="Enter password" />
+  <button id="hashBtn">Hash & Store</button>
+
+  <p class="note">Hashed passwords are stored in your browser's local storage and are not shown here.</p>
+
+  <script>
+    // Convert ArrayBuffer to hex string
+    function bufferToHex(buffer) {
+      return [...new Uint8Array(buffer)]
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    // Hash the password using SHA-256
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return bufferToHex(hashBuffer);
+    }
+
+    // Save new hash to localStorage
+    async function saveHash() {
+      const password = document.getElementById('passwordInput').value;
+      if (!password) {
+        alert('Please enter a password');
+        return;
+      }
+      const hashed = await hashPassword(password);
+      let stored = JSON.parse(localStorage.getItem('hashedPasswords') || '[]');
+      stored.push(hashed);
+      localStorage.setItem('hashedPasswords', JSON.stringify(stored));
+      document.getElementById('passwordInput').value = '';
+      alert('Password hashed and stored successfully!');
+    }
+
+    document.getElementById('hashBtn').addEventListener('click', saveHash);
+  </script>
+</body>
+</html>
